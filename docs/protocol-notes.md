@@ -125,6 +125,21 @@ iov-service、geely-user-api、gtsp-app-geely-oss），无未知主机；
 
 门禁解除前，集成保持签名门禁（`UnverifiedSigner`），不做真实网络调用。
 
+## 开源参考项目分析（2026-09-04）
+
+| 项目 | 覆盖范围 | 对本集成的可用性 |
+|---|---|---|
+| [lyj5812/geely-galaxy](https://github.com/lyj5812/geely-galaxy) | 银河App（galaxy-*.geely.com），x-ca 网关签名含 APP_SECRETS 表、refresh-token 登录、GeeTest 验证码 | 算法结构同族（阿里云网关标准），但 AppKey/Secret 为银河 App 专用，不覆盖本 App 的 204397973/204853712 |
+| [suyunkai/geely-galaxy-assistant](https://github.com/suyunkai/geely-galaxy-assistant) | 银河App 青龙脚本（登录/签到/MQTT） | 同上 |
+| [YossiKon/geely-connect](https://github.com/YossiKon/geely-connect) | 国际版 App（com.geely.global.em / ecloudkr / zeekrlife） | **snc SignInterceptor（nj/h.java）签名算法已完整移植并生产验证**：`X-SIGNATURE = Base64(HMAC-SHA256(canonical, secret))`，canonical = 排序白名单头 `lower:value\n` + 排序query（*→%2A, %2F→/, %3F→?）+ Base64(MD5(body)) + METHOD + .com后路径。与本 App 抓包的 X-SIGNATURE（32字节 SHA256 输出）同族 |
+
+关键差距：snc 密钥**按 App/地区派生**（国际版 SEA 密钥由模拟器从 whitebox si.a blob 解出）。
+本 App（com.geely.consumer，中国版）的 gric 栈密钥需同样手段提取——即需要 root/模拟器，
+无 root 路线下不可得。x-ca 栈（204397973/204853712）的 AppSecret 也不在明文 dex 中。
+
+结论维持：无 root 下三项门禁无法解除；集成保持签名门禁形态交付，
+激活步骤见 `outputs/06_HA部署指南.md`。
+
 ## 设备环境备忘
 
 - 2026-09-03 19:00+：用户清除 App 数据并重新登录后，**风控自毁循环解除**，
