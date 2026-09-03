@@ -45,7 +45,7 @@ ignore = [
 "custom_components/geely_auto/api/signing.py" = ["PLR0913"]
 "custom_components/geely_auto/redaction.py" = ["ANN401"]
 "scripts/**" = ["T201"]
-"tests/**" = ["ANN", "ARG", "D", "PLR2004", "S101"]
+"tests/**" = ["ANN", "ARG", "D", "N818", "PLC0415", "PLR2004", "S101", "S106", "SLF001"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -62,3 +62,10 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["custom_components.geely_auto.config_flow"]
 disable_error_code = ["call-arg", "misc"]
+
+[[tool.mypy.overrides]]
+module = [
+  "custom_components.geely_auto.coordinator",
+  "custom_components.geely_auto.entity",
+]
+disable_error_code = ["misc"]

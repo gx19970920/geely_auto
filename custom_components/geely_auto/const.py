@@ -5,6 +5,11 @@ from typing import Final
 DOMAIN: Final = "geely_auto"
 PROTOCOL_GATE_REASON: Final = "protocol_samples_required"
 
+CONF_ACCESS_TOKEN: Final = "access_token"  # noqa: S105 - config key name, not a secret
+CONF_DEVICE_ID: Final = "device_id"
+CONF_APP_VERSION: Final = "app_version"
+UPDATE_INTERVAL_SECONDS: Final = 300
+
 # Evidence classes used across the protocol layer.
 EVIDENCE_VERIFIED: Final = "verified-capture"
 EVIDENCE_STATIC_CANDIDATE: Final = "static-candidate"
