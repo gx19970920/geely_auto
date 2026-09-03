@@ -32,13 +32,14 @@ class OfflineSession:
 
     async def request(self, method: str, url: str, **kwargs: Any) -> Any:
         self.requests.append((method, url))
-        return CannedResponse(self._payload)
+        return CannedResponse(200, self._payload)
 
 
 class CannedResponse:
-    """Minimal async-json response stand-in."""
+    """Minimal status + async-json response stand-in."""
 
-    def __init__(self, payload: dict[str, Any]) -> None:
+    def __init__(self, status: int, payload: dict[str, Any]) -> None:
+        self.status = status
         self._payload = payload
 
     async def json(self) -> dict[str, Any]:
@@ -50,6 +51,17 @@ class AcceptingSigner:
 
     def signature(self, request: Any) -> str:
         return "offline-signature"
+
+
+def build_api(session: OfflineSession) -> GeelyAutoApi:
+    return GeelyAutoApi(
+        session,
+        signer=AcceptingSigner(),
+        context=TspRequestContext(
+            device_id="00000000-0000-0000-0000-000000000000",  # nosec-secret-scan (synthetic)
+            app_version="3.54.0",
+        ),
+    )
 
 
 def run(coroutine: Coroutine[Any, Any, Any]) -> Any:
@@ -88,14 +100,7 @@ def test_offline_pipeline_parses_fixture_response() -> None:
     )
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     session = OfflineSession(payload)
-    api = GeelyAutoApi(
-        session,
-        signer=AcceptingSigner(),
-        context=TspRequestContext(
-            device_id="00000000-0000-0000-0000-000000000000",  # nosec-secret-scan (synthetic)
-            app_version="3.54.0",
-        ),
-    )
+    api = build_api(session)
 
     summaries = run(api.get_vehicles("test-access-token"))
 
