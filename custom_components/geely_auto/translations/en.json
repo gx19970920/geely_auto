@@ -1,0 +1,8 @@
+{
+  "title": "Geely Auto",
+  "config": {
+    "abort": {
+      "protocol_samples_required": "Setup is not available yet. Verified and sanitized protocol samples are required before this integration can connect to the vehicle cloud."
+    }
+  }
+}

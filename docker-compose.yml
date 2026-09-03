@@ -1,0 +1,18 @@
+services:
+  homeassistant:
+    image: ${HA_IMAGE:?Set HA_IMAGE to a reviewed Home Assistant image digest}
+    container_name: geely-auto-ha-dev
+    restart: "no"
+    ports:
+      - "127.0.0.1:${HA_PORT:-18123}:8123"
+    volumes:
+      - ./ha-config:/config
+      - ./custom_components/geely_auto:/config/custom_components/geely_auto:ro
+    environment:
+      TZ: Asia/Shanghai
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_RAW

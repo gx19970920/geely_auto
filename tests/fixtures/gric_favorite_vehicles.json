@@ -1,0 +1,42 @@
+{
+  "code": "0",
+  "msg": "success",
+  "data": [
+    {
+      "aiHost": "https://gric-aic-api.geely.com",
+      "appinnerCode": "KX11-A3-ICE",
+      "brandCode": "GEELY",
+      "colorCode": "KC14",
+      "colorName": "<color-name>",
+      "defaultCarFlag": true,
+      "defaultCarSetTime": "2026-09-03 12:08:09",
+      "engineNo": "<redacted>",
+      "engineType": "ICE",
+      "geea": "2.0",
+      "modelCode": "KX11-A3-ICE",
+      "modelName": "<model-name>",
+      "ownerFlag": false,
+      "plateNo": "<plate>",
+      "pno18": "<redacted>",
+      "relationState": 1,
+      "seriesCode": "KX11-A3-ICE",
+      "seriesCodeVs": "KX11-A3-ICE",
+      "seriesName": "<series-name>",
+      "seriesNameVs": "<series-name>",
+      "shareId": "<redacted>",
+      "tenantId": "GEELY",
+      "tspFramework": 2,
+      "tspHost": "https://gric-hf-api.geely.com",
+      "tspPlatform": 2,
+      "userId": "<redacted>",
+      "vin": "VIN00000000000001",
+      "webHost": "https://gric-hf-static.geely.com",
+      "wheelPosition": "0"
+    }
+  ],
+  "debug": {
+    "bizName": "ms-vehicle-core",
+    "time": 1788427322470,
+    "traceId": "<redacted>"
+  }
+}

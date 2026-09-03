@@ -1,0 +1,63 @@
+{
+  "code": "0",
+  "msg": "success",
+  "data": {
+    "basicVehicleStatus": {
+      "chargeLevel": null,
+      "chargeLevelPct": null,
+      "distanceToEmpty": "302",
+      "distanceToEmptyOnBattery100Soc": null,
+      "distanceToEmptyOnBatteryOnly": null,
+      "doorLockStatus": null,
+      "fuelLevel": "34",
+      "fuelLevelPct": "55",
+      "fuelLevelStatus": null,
+      "fuelType": null,
+      "lightHornStatus": null,
+      "odometer": null,
+      "position": null,
+      "preClimateActive": false,
+      "tripMeter": null,
+      "trunkLockStatus": null,
+      "usageMode": "ECO"
+    },
+    "vehicleClimateStatus": {
+      "airBlowerActive": false,
+      "defrostActive": false,
+      "drvHeatLv": "0",
+      "drvVentDetail": "FACE",
+      "preClimateActive": false
+    },
+    "vehicleDoorCoverStatus": {
+      "acChargeLidStatus": "0",
+      "centralLockingStatus": "1",
+      "doorLockStatusDriver": "1",
+      "doorLockStatusDriverRear": "1",
+      "doorLockStatusPassenger": "1",
+      "doorLockStatusPassengerRear": "1",
+      "doorOpenStatusDriver": "0",
+      "doorOpenStatusDriverRear": "0",
+      "doorOpenStatusPassenger": "0",
+      "doorOpenStatusPassengerRear": "0",
+      "trunkLockStatus": "1",
+      "trunkOpenStatus": "0"
+    },
+    "vehicleWindowStatus": {
+      "windowOpenStatusDriver": "0",
+      "windowOpenStatusDriverRear": "0",
+      "windowOpenStatusPassenger": "0",
+      "windowOpenStatusPassengerRear": "0"
+    },
+    "vehicleBatteryStatus": {
+      "chargeSts": 0,
+      "chargerState": 0
+    },
+    "vehicleBleExtra": {
+      "hmiStatusApproachStatus": 0,
+      "hmiStatusWalkAwayStatus": 0
+    },
+    "carFromSource": null,
+    "shadowTspVehicleStatus": null,
+    "updateTime": 1788427322000
+  }
+}

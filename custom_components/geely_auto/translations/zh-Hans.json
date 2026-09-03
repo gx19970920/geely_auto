@@ -1,0 +1,8 @@
+{
+  "title": "吉利汽车",
+  "config": {
+    "abort": {
+      "protocol_samples_required": "当前尚不能配置。在连接车辆云服务前，必须先获得已验证且完全脱敏的协议样本。"
+    }
+  }
+}

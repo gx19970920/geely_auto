@@ -1,0 +1,10 @@
+{
+  "domain": "geely_auto",
+  "name": "Geely Auto",
+  "codeowners": [],
+  "config_flow": true,
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}

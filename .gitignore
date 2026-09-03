@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tools/
+.coverage
+htmlcov/
+.venv/
+worktools/
+
+# Secrets and local credentials
+.env
+.env.*
+!.env.example
+secrets.*
+*.token
+*.cookie
+
+# Captures and sensitive protocol material
+captures/
+mitmproxy/
+*.pcap
+*.pcapng
+*.har
+*.flow
+tests/fixtures/private/
+tests/fixtures/real/
+
+# APK/decompiler output
+*.apk
+jadx-output/
+apktool-output/
+decompiled/
+
+# Home Assistant runtime data
+ha-config/*
+!ha-config/.gitkeep
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# pytest temporary base dir
+.pytest_tmp/
