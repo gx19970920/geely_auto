@@ -19,13 +19,13 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--strict-config --strict-markers -q -p no:cacheprovider --basetemp=.pytest_tmp"
+addopts = "--strict-config --strict-markers -q -p no:cacheprovider --basetemp=.pytest-work"
 testpaths = ["tests"]
 
 [tool.ruff]
 target-version = "py313"
 line-length = 88
-extend-exclude = [".tools", "worktools", ".pytest_tmp", ".venv"]
+extend-exclude = [".tools", "worktools", ".pytest-work", ".venv"]
 
 [tool.ruff.lint]
 select = ["ALL"]

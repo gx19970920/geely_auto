@@ -14,7 +14,7 @@ _SKIP_PARTS = frozenset(
         ".ruff_cache",
         ".tools",
         ".venv",
-        ".pytest_tmp",
+        ".pytest-work",
         "captures",
         "ha-config",
         "worktools",
