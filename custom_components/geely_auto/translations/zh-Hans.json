@@ -4,5 +4,15 @@
     "abort": {
       "protocol_samples_required": "当前尚不能配置。在连接车辆云服务前，必须先获得已验证且完全脱敏的协议样本。"
     }
+  },
+  "entity": {
+    "sensor": {
+      "fuel_level_pct": { "name": "燃油液位" },
+      "fuel_range_km": { "name": "续航里程" },
+      "usage_mode": { "name": "使用模式" }
+    }
+  },
+  "diagnostics": {
+    "title": "诊断"
   }
 }

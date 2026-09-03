@@ -4,5 +4,15 @@
     "abort": {
       "protocol_samples_required": "Setup is not available yet. Verified and sanitized protocol samples are required before this integration can connect to the vehicle cloud."
     }
+  },
+  "entity": {
+    "sensor": {
+      "fuel_level_pct": { "name": "Fuel level" },
+      "fuel_range_km": { "name": "Fuel range" },
+      "usage_mode": { "name": "Usage mode" }
+    }
+  },
+  "diagnostics": {
+    "title": "Diagnostics"
   }
 }
