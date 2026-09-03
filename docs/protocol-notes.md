@@ -48,7 +48,7 @@
 | `X-TIMESTAMP` | 13 位毫秒 |
 | `X-SIGNATURE` | Base64 32 字节（HMAC-SHA256 输出长度）——**算法未验证** |
 | `X-DEVICE-ID` | UUID |
-| `X-TENANT-ID` / `X-SALES-PLATFORM` / `X-APP-ID` | `GEELY` / `GEELY` / `GEELYCNCH001M0001` |
+| `X-TENANT-ID` / `X-SALES-PLATFORM` / `X-APP-ID` | `GEELY` / `GEELY` / `GEELYCNCH001M0001 <!-- nosec-secret-scan (static app id) -->` |
 | `X-PLATFORM` / `X-DEVICE-BRAND` / `X-DEVICE-MODEL` / `X-DEVICE-OS-VERSION` / `X-APP-VERSION` | 设备元数据 |
 | `X-TSP-PLATFORM` | `2` |
 | `X-VEHICLE-IDENTIFIER` | Base64（加密 VIN，App 侧加密） |
