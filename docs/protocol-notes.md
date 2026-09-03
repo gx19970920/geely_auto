@@ -99,8 +99,36 @@
 2. `status/latest` 的实时成功响应（主机归属 + 查询参数 + X-SIGNATURE 样本）。
 3. X-SIGNATURE v2.1 输入串与密钥来源（静态：搜 HmacSHA256 调用点；动态：dkservice hook）。
 
+## 无 Root 约束下的能力边界（2026-09-03 起生效）
+
+用户要求后续开发**不依赖 root**。影响评估：
+
+| 手段 | 无 root 可用性 | 说明 |
+|---|---|---|
+| 代理（`settings put global http_proxy`） | ✅（adb shell 权限即可） | 已验证 App 全程存活 |
+| CONNECT/SNI 主机发现 | ✅ | 见下方主机地图 |
+| 系统级 CA 安装（TLS 解密） | ❌ | 需 root bind-mount；用户 CA 对 targetSdk 33 无效 |
+| frida-server / 运行时 DEX dump | ❌ | 需 root；gadget 重打包会改签名，风险高 |
+| App 私有目录读取（MMKV/缓存） | ❌ | 需 root |
+
+已完成的非 root 主机发现（155 条 SNI/CONNECT，App 全程存活，无风控复发）：
+核心业务主机与既有清单一致（api-gw-toc、app.geely.com、gric-api、gric-hf-api、
+iov-service、geely-user-api、gtsp-app-geely-oss），无未知主机；
+定位服务为高德（dualstack-arestapi / restsdk.amap.com）。
+
+结论：无 root 约束下，TLS 明文样本（status/latest 实时响应、token 刷新）
+与 X-SIGNATURE 算法的运行时取证均不可行。剩余门禁的突破路径：
+
+1. 静态还原 jiagu 加固的隐藏 dex 后分析签名调用点（难）；
+2. 用户同意后的一轮 root 抓包（历史方案已验证）；
+3. frida-gadget 重打包（改 APK 签名、需重新登录、风控风险高，不推荐）。
+
+门禁解除前，集成保持签名门禁（`UnverifiedSigner`），不做真实网络调用。
+
 ## 设备环境备忘
 
+- 2026-09-03 19:00+：用户清除 App 数据并重新登录后，**风控自毁循环解除**，
+  App 在纯代理（无 CA、无 frida）环境下持续存活，业务流量正常。
 - `debug_app` 全局设置会导致 AMS 在启动时强杀目标 App（上一轮残留，已清除并复测正常）。
 - 反复 MITM/插桩后 App 主进程出现"启动后数秒静默退出"的风控循环，重启不解除；
   疑似本地 MMKV 风控标记或服务端风控。恢复手段（需用户决策）：清除 App 数据重新登录，
