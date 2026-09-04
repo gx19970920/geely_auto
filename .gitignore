@@ -47,3 +47,6 @@ Thumbs.db
 # pytest temporary base dir
 .pytest_tmp/
 .pytest-work/
+
+# HA test instance backups (runtime storage)
+ha-config.bak-*/
