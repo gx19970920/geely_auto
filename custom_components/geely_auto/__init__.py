@@ -16,7 +16,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api.client import GeelyAutoApi
 from .api.signing import GeelyHmacSigner, TspRequestContext
-from .captcha_views import ensure_captcha_views
 from .const import (
     CONF_ACCESS_TOKEN,
     CONF_APP_VERSION,
@@ -39,7 +38,6 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.B
 
 async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:  # noqa: ARG001
     """Set up Geely Auto component at startup."""
-    ensure_captcha_views(hass)
     return True
 
 

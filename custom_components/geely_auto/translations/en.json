@@ -3,54 +3,19 @@
   "config": {
     "step": {
       "user": {
-        "title": "Geely Auto Integration",
-        "description": "Choose your preferred login method to integrate your Geely vehicle with Home Assistant.",
-        "menu_options": {
-          "sms": "SMS Code Login (Recommended)",
-          "token": "Access Token Login (Manual)",
-          "demo": "Demo / Mock Mode (No account required)"
-        }
-      },
-      "sms_phone": {
-        "title": "SMS Verification - Phone Number",
-        "description": "Enter your mobile phone number registered with the Geely Auto App.",
-        "data": {
-          "phone": "Mobile Phone Number"
-        }
-      },
-      "sms_captcha": {
-        "title": "GeeTest Security Verification",
-        "description": "Complete the slider captcha on the verification page."
-      },
-      "sms_code": {
-        "title": "Enter SMS Code",
-        "description": "Enter the 6-digit SMS verification code sent to your phone. If expired or not received, check 'Resend SMS code' and submit.",
-        "data": {
-          "sms_code": "SMS Verification Code (6 digits)",
-          "resend_code": "Resend SMS code (trigger slider captcha again)"
-        }
-      },
-      "token": {
-        "title": "Token / Manual Credentials",
-        "description": "Enter your captured Access Token and credentials.",
+        "title": "Geely Auto Configuration",
+        "description": "Please enter your Geely Auto Access Token (JWT) captured from the mobile app or via automated webhook.",
         "data": {
           "access_token": "Access Token",
-          "refresh_token": "Refresh Token (optional)",
           "device_id": "Device ID (optional)",
+          "refresh_token": "Refresh Token (optional)",
           "app_version": "App Version"
         }
       }
     },
     "error": {
-      "token_or_demo_required": "Please provide an Access Token or enable Demo Mode.",
-      "invalid_sms_code": "Invalid SMS verification code.",
-      "sms_code_wrong": "The SMS verification code is incorrect. Please check the 6 digits sent to your phone and try again.",
-      "sms_code_expired": "The SMS verification code has expired. Please request a new code.",
-      "sms_code_format": "Please enter a valid 6-digit SMS verification code.",
-      "captcha_failed": "GeeTest security captcha verification failed.",
-      "sms_send_failed": "Failed to send SMS code. Please try again later.",
+      "invalid_auth": "Invalid authentication credentials (Access Token is required).",
       "cannot_connect": "Failed to connect to Geely servers.",
-      "invalid_auth": "Invalid authentication credentials.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
