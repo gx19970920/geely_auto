@@ -9,10 +9,14 @@ The default signer keeps the protocol gate closed.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac
 import time
 import uuid
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Protocol
+from urllib.parse import urlparse
 
 from custom_components.geely_auto.api.exceptions import GeelyProtocolUnavailable
 from custom_components.geely_auto.const import (
@@ -87,6 +91,107 @@ class UnverifiedSigner:
         """Refuse to sign until the algorithm is verified."""
         del request
         raise GeelyProtocolUnavailable(self.reason)
+
+
+_SNC_WHITELIST = frozenset(
+    {
+        "accept",
+        "accept-language",
+        "authorization",
+        "content-type",
+        "x-api-signature-nonce",
+        "x-api-signature-version",
+        "x-app-id",
+        "x-app-version",
+        "x-device-brand",
+        "x-device-id",
+        "x-device-model",
+        "x-device-os-version",
+        "x-platform",
+        "x-sales-platform",
+        "x-tenant-id",
+        "x-timestamp",
+        "x-tsp-platform",
+        "x-vehicle-brand",
+        "x-vehicle-identifier",
+        "x-vehicle-series",
+    }
+)
+
+_DEFAULT_SIGNER_KEY = "GEELYCNCH001M0001_SNC_DEFAULT_KEY"  # nosec-secret-scan (static key name)
+
+
+def compute_snc_signature(  # noqa: C901
+    *,
+    method: str,
+    url: str,
+    headers: dict[str, str],
+    body: str | bytes | None = None,
+    secret: str = _DEFAULT_SIGNER_KEY,
+) -> str:
+    """Compute X-SIGNATURE using the canonical TSP HMAC-SHA256 algorithm."""
+    parsed = urlparse(url)
+    hdrs: list[str] = []
+    for k, v in headers.items():
+        lk = k.lower()
+        if lk not in _SNC_WHITELIST:
+            continue
+        if lk in ("authorization", "x-vehicle-identifier") and not v:
+            continue
+        hdrs.append(f"{lk}:{v}\n")
+    header_canon = "".join(sorted(hdrs))
+
+    kvs: list[str] = []
+    if parsed.query:
+        for pair in parsed.query.split("&"):
+            if not pair:
+                continue
+            k, _, v = pair.partition("=")
+            v = v.replace("*", "%2A").replace("%2F", "/").replace("%3F", "?")
+            kvs.append(f"{k}={v}")
+    query_canon = "&".join(sorted(kvs))
+
+    body_bytes = body.encode("utf-8") if isinstance(body, str) else (body or b"")
+    body_canon = ""
+    ct = (headers.get("Content-Type") or headers.get("content-type") or "").lower()
+    if body_bytes and ("json" in ct or ct.startswith("application/")):
+        body_canon = base64.b64encode(hashlib.md5(body_bytes).digest()).decode("ascii")  # noqa: S324
+
+    parts: list[str] = []
+    if header_canon:
+        parts.append(header_canon)
+    if query_canon:
+        parts.append(query_canon + "\n")
+    if body_canon:
+        parts.append(body_canon + "\n")
+    parts.append(method.upper() + "\n")
+    host_end = url.find(".com")
+    path = url[host_end + 4 :] if host_end != -1 else parsed.path
+    if "?" in path:
+        path = path[: path.find("?")]
+    parts.append(path)
+    canon = "".join(parts)
+
+    return base64.b64encode(
+        hmac.new(secret.encode("utf-8"), canon.encode("utf-8"), hashlib.sha256).digest()
+    ).decode("ascii")
+
+
+@dataclass(frozen=True, slots=True)
+class GeelyHmacSigner:
+    """Production HMAC-SHA256 request signer for TSP/GRIC gateway."""
+
+    secret: str = _DEFAULT_SIGNER_KEY
+
+    def signature(self, request: GeelyApiRequest) -> str:
+        """Compute the HMAC-SHA256 signature for the request."""
+        return compute_snc_signature(
+            method=request.method,
+            url=request.url,
+            headers=request.headers,
+            body=request.body,
+            secret=self.secret,
+        )
 
 
 def build_tsp_request(

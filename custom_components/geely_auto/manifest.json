@@ -1,11 +1,13 @@
 {
   "domain": "geely_auto",
-  "name": "Geely Auto",
-  "codeowners": [],
+  "name": "Geely Auto (吉利汽车)",
+  "codeowners": ["@gx19970920"],
   "config_flow": true,
+  "documentation": "https://github.com/gx19970920/geely_auto",
+  "issue_tracker": "https://github.com/gx19970920/geely_auto/issues",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "loggers": ["custom_components.geely_auto"],
   "requirements": [],
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

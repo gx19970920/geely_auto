@@ -50,3 +50,9 @@ Thumbs.db
 
 # HA test instance backups (runtime storage)
 ha-config.bak-*/
+
+# Local test & debug scripts
+scripts/finish_onboarding.py
+scripts/probe_flows.py
+scratch/
+*.local.*

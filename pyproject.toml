@@ -43,6 +43,9 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "custom_components/geely_auto/api/exceptions.py" = ["N818"]
 "custom_components/geely_auto/api/signing.py" = ["PLR0913"]
+"custom_components/geely_auto/api/gateway_signing.py" = ["PLR0913"]
+"custom_components/geely_auto/captcha_views.py" = ["E501", "RUF001", "ARG002", "TRY400", "BLE001"]
+"custom_components/geely_auto/config_flow.py" = ["C901", "PLR0912", "PLR0915", "TRY400", "TRY401", "BLE001"]
 "custom_components/geely_auto/redaction.py" = ["ANN401"]
 "scripts/**" = ["T201"]
 "tests/**" = ["ANN", "ARG", "D", "N818", "PLC0415", "PLR2004", "S101", "S106", "SLF001"]
@@ -56,16 +59,20 @@ exclude = ["tests/"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["homeassistant.*"]
+module = ["homeassistant.*", "voluptuous.*", "voluptuous"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["custom_components.geely_auto.config_flow"]
-disable_error_code = ["call-arg", "misc"]
+disable_error_code = ["call-arg", "misc", "no-any-return"]
 
 [[tool.mypy.overrides]]
 module = [
+  "custom_components.geely_auto.captcha_views",
   "custom_components.geely_auto.coordinator",
   "custom_components.geely_auto.entity",
+  "custom_components.geely_auto.sensor",
+  "custom_components.geely_auto.binary_sensor",
 ]
-disable_error_code = ["misc"]
+disable_error_code = ["misc", "no-any-return"]
+

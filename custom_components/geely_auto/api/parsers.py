@@ -115,6 +115,14 @@ def _parse_vehicle_entry(item: Any) -> VehicleSummary:
         if isinstance(parsed_biz, dict):
             for key, value in parsed_biz.items():
                 merged.setdefault(key, value)
+    custom_name = (
+        _optional_str(merged, "customName")
+        or _optional_str(merged, "carNickName")
+        or _optional_str(merged, "nickName")
+        or _optional_str(merged, "carName")
+        or _optional_str(merged, "vehicleAlias")
+        or _optional_str(merged, "alias")
+    )
     return VehicleSummary(
         vin=vin,
         vin_hash=vin_hash(vin),
@@ -133,58 +141,163 @@ def _parse_vehicle_entry(item: Any) -> VehicleSummary:
         relation_state=_optional_int(merged, "relationState"),
         is_default=_optional_bool(merged, "defaultCarFlag"),
         is_owner=_optional_bool(merged, "ownerFlag"),
+        custom_name=custom_name,
     )
 
 
-def parse_vehicle_status(payload: Any, vin: str = "unknown") -> VehicleState:
+def parse_vehicle_status(payload: Any, vin: str = "unknown") -> VehicleState:  # noqa: C901
     """Parse the vehicle status payload into a normalized state.
 
-    Accepts either the bare status object (as cached by the app) or the
-    enveloped response. Enum semantics for lock, window, trunk, and tyre
-    sections are not verified yet, so those entries surface as ``None``.
+    Supports the official v2.0 TSP status shape (basic, runningStatus,
+    additionalMaintenanceStatus, drivingSafetyStatus, climateStatus) as well as
+    the legacy/cached shape with basicVehicleStatus.
     """
     data = _unwrap(payload)
-    if isinstance(data, dict) and "basicVehicleStatus" not in data:
+    if (
+        isinstance(data, dict)
+        and "basic" not in data
+        and "basicVehicleStatus" not in data
+    ):
         nested = data.get("data", data.get("shadowTspVehicleStatus"))
         if isinstance(nested, dict):
             data = nested
-    if not isinstance(data, dict) or "basicVehicleStatus" not in data:
-        raise GeelyProtocolError("basicVehicleStatus section missing")
 
-    basic = data["basicVehicleStatus"]
+    if not isinstance(data, dict) or (
+        "basic" not in data and "basicVehicleStatus" not in data
+    ):
+        raise GeelyProtocolError(
+            "Neither basic nor basicVehicleStatus section present in status payload"
+        )
 
-    updated_at: datetime | None = None
-    update_time = _optional_int(data, "updateTime")
-    if update_time is not None:
-        updated_at = datetime.fromtimestamp(update_time / 1000, tz=UTC)
+    # 1. 优先适配吉利官方 v2.0 最新格式
+    if "basic" in data:
+        basic = data.get("basic") or {}
+        running = data.get("runningStatus") or {}
+        maint = data.get("additionalMaintenanceStatus") or {}
+        safety = data.get("drivingSafetyStatus") or {}
+        climate = data.get("climateStatus") or {}
 
-    doors: dict[str, bool | None] = {}
+        updated_at: datetime | None = None
+        update_time = _optional_int(data, "updateTime")
+        if update_time is not None:
+            updated_at = datetime.fromtimestamp(update_time / 1000, tz=UTC)
+
+        # 经纬度位置
+        pos = basic.get("position") if isinstance(basic.get("position"), dict) else {}
+        lat = _optional_float(pos, "latitude")
+        lon = _optional_float(pos, "longitude")
+
+        # 锁状态 (centralLockingStatus: "1"=已锁, "0"=未锁)
+        cls = safety.get("centralLockingStatus")
+        locked = (str(cls) == "1") if cls is not None else None
+
+        # 电子手刹
+        epb = safety.get("electricParkBrakeStatus")
+        handbrake = (str(epb) == "1") if epb is not None else None
+
+        # 车门开闭状态 (True=打开, False=关闭)
+        doors: dict[str, bool | None] = {}
+        for key, field_name in (
+            ("door_driver", "doorOpenStatusDriver"),
+            ("door_passenger", "doorOpenStatusPassenger"),
+            ("door_driver_rear", "doorOpenStatusDriverRear"),
+            ("door_passenger_rear", "doorOpenStatusPassengerRear"),
+            ("trunk", "trunkOpenStatus"),
+            ("engine_hood", "engineHoodOpenStatus"),
+        ):
+            val = safety.get(field_name)
+            doors[key] = (str(val) == "1") if val is not None else None
+
+        # 车窗与天窗开闭 (True=打开, False=关闭)
+        windows: dict[str, bool | None] = {}
+        for key, field_name in (
+            ("driver", "winPosDriver"),
+            ("passenger", "winPosPassenger"),
+            ("driver_rear", "winPosDriverRear"),
+            ("passenger_rear", "winPosPassengerRear"),
+            ("sunroof", "sunroofPos"),
+        ):
+            val = climate.get(field_name)
+            windows[key] = (str(val) != "0") if val is not None else None
+
+        # 四轮胎压 kPa
+        tyre_pressure: dict[str, float | None] = {
+            "front_left": _optional_float(maint, "tyreStatusDriver"),
+            "front_right": _optional_float(maint, "tyreStatusPassenger"),
+            "rear_left": _optional_float(maint, "tyreStatusDriverRear"),
+            "rear_right": _optional_float(maint, "tyreStatusPassengerRear"),
+        }
+
+        # 四轮胎温 摄氏度
+        tyre_temp: dict[str, float | None] = {
+            "front_left": _optional_float(maint, "tyreTempDriver"),
+            "front_right": _optional_float(maint, "tyreTempPassenger"),
+            "rear_left": _optional_float(maint, "tyreTempDriverRear"),
+            "rear_right": _optional_float(maint, "tyreTempPassengerRear"),
+        }
+
+        return VehicleState(
+            vin_hash=vin_hash(vin),
+            updated_at=updated_at,
+            fuel_range_km=_optional_float(basic, "distanceToEmpty"),
+            fuel_level_pct=_optional_float(running, "fuelLevelPct"),
+            fuel_level_l=_optional_float(running, "fuelLevel"),
+            odometer_km=_optional_float(maint, "odometer"),
+            battery_voltage=_optional_float(maint, "voltage"),
+            coolant_temperature_c=_optional_float(running, "engineCoolantTemperature"),
+            avg_fuel_consumption=_optional_float(running, "aveFuelConsumption"),
+            days_to_service=_optional_int(maint, "daysToService"),
+            distance_to_service_km=_optional_float(maint, "distanceToService"),
+            usage_mode=_optional_str(basic, "usageMode"),
+            locked=locked,
+            charging=None,
+            handbrake_active=handbrake,
+            pre_climate_active=_optional_bool(climate, "preClimateActive"),
+            climate_fan_active=_optional_bool(climate, "airBlowerActive"),
+            doors=doors,
+            windows=windows,
+            tyre_pressure_kpa=tyre_pressure,
+            tyre_temp_c=tyre_temp,
+            interior_temperature_c=_optional_float(climate, "interiorTemp"),
+            latitude=lat,
+            longitude=lon,
+        )
+
+    # 2. 兼容旧版 basicVehicleStatus 格式
+    basic_legacy = data["basicVehicleStatus"]
+    updated_at_legacy: datetime | None = None
+    update_time_legacy = _optional_int(data, "updateTime")
+    if update_time_legacy is not None:
+        updated_at_legacy = datetime.fromtimestamp(update_time_legacy / 1000, tz=UTC)
+
+    doors_legacy: dict[str, bool | None] = {}
     door_section = data.get("vehicleDoorCoverStatus")
     if isinstance(door_section, dict):
-        for key in _DOOR_LOCK_KEYS:
-            if key in door_section:
-                doors[key] = None
+        for k in _DOOR_LOCK_KEYS:
+            if k in door_section:
+                doors_legacy[k] = None
 
-    windows: dict[str, bool | None] = {}
+    windows_legacy: dict[str, bool | None] = {}
     window_section = data.get("vehicleWindowStatus")
     if isinstance(window_section, dict):
-        windows = {str(key): None for key in window_section}
+        windows_legacy = {str(k): None for k in window_section}
 
-    climate = data.get("vehicleClimateStatus")
+    climate_legacy = data.get("vehicleClimateStatus")
 
     return VehicleState(
         vin_hash=vin_hash(vin),
-        updated_at=updated_at,
-        fuel_range_km=_optional_float(basic, "distanceToEmpty"),
-        fuel_level_pct=_optional_float(basic, "fuelLevelPct"),
-        usage_mode=_optional_str(basic, "usageMode"),
+        updated_at=updated_at_legacy,
+        fuel_range_km=_optional_float(basic_legacy, "distanceToEmpty"),
+        fuel_level_pct=_optional_float(basic_legacy, "fuelLevelPct"),
+        usage_mode=_optional_str(basic_legacy, "usageMode"),
         locked=None,
-        pre_climate_active=_optional_bool(basic, "preClimateActive"),
+        pre_climate_active=_optional_bool(basic_legacy, "preClimateActive"),
         climate_fan_active=(
-            _optional_bool(climate, "airBlowerActive")
-            if isinstance(climate, dict)
+            _optional_bool(climate_legacy, "airBlowerActive")
+            if isinstance(climate_legacy, dict)
             else None
         ),
-        doors=doors,
-        windows=windows,
+        doors=doors_legacy,
+        windows=windows_legacy,
     )
+

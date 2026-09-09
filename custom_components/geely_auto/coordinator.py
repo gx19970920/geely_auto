@@ -39,6 +39,11 @@ class GeelyAutoDataUpdateCoordinator(DataUpdateCoordinator["VehicleSnapshot"]):
         )
         self._runtime = runtime
 
+    @property
+    def runtime(self) -> GeelyAutoRuntime:
+        """Return the underlying GeelyAutoRuntime instance."""
+        return self._runtime
+
     async def _async_update_data(self) -> VehicleSnapshot:
         """Fetch a snapshot; a closed gate becomes an explicit UpdateFailed."""
         try:

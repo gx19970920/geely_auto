@@ -20,9 +20,7 @@ _SKIP_PARTS = frozenset(
         "worktools",
     }
 )
-_TEXT_SUFFIXES = frozenset(
-    {".json", ".md", ".py", ".toml", ".txt", ".yaml", ".yml"}
-)
+_TEXT_SUFFIXES = frozenset({".json", ".md", ".py", ".toml", ".txt", ".yaml", ".yml"})
 _PATTERNS = {
     "phone": re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)"),
     "vin": re.compile(r"(?<![A-Z0-9])[A-HJ-NPR-Z0-9]{17}(?![A-Z0-9])"),

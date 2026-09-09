@@ -45,6 +45,7 @@ class VehicleSummary:
     relation_state: int | None = None
     is_default: bool | None = None
     is_owner: bool | None = None
+    custom_name: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,16 +76,26 @@ class VehicleState:
     fuel_range_km: float | None = None
     odometer_km: float | None = None
     fuel_level_pct: float | None = None
+    fuel_level_l: float | None = None
+    battery_voltage: float | None = None
+    coolant_temperature_c: float | None = None
+    avg_fuel_consumption: float | None = None
+    days_to_service: int | None = None
+    distance_to_service_km: float | None = None
     usage_mode: str | None = None
     locked: bool | None = None
     charging: bool | None = None
+    handbrake_active: bool | None = None
     pre_climate_active: bool | None = None
     climate_fan_active: bool | None = None
     doors: dict[str, bool | None] = field(default_factory=dict)
     windows: dict[str, bool | None] = field(default_factory=dict)
     tyre_pressure_kpa: dict[str, float | None] = field(default_factory=dict)
+    tyre_temp_c: dict[str, float | None] = field(default_factory=dict)
     interior_temperature_c: float | None = None
     exterior_temperature_c: float | None = None
     latitude: float | None = None
     longitude: float | None = None
+    geely_points: int | None = None
+    geely_power: int | None = None
     raw_capabilities: frozenset[str] = field(default_factory=frozenset)

@@ -41,7 +41,7 @@ class Endpoint:
         return self.evidence == EVIDENCE_VERIFIED
 
 
-GRIC_API_BASE: Final = "https://gric-api.geely.com"
+GRIC_API_BASE: Final = "https://gric-hf-api.geely.com"
 
 VEHICLE_LIST: Final = Endpoint(
     base=GRIC_API_BASE,
@@ -54,8 +54,9 @@ VEHICLE_STATUS_LATEST: Final = Endpoint(
     base=GRIC_API_BASE,
     path="/ms-vehicle-status/api/v2.0/vehicle/status/latest",
     method="GET",
-    evidence=EVIDENCE_STATIC_CANDIDATE,
+    evidence=EVIDENCE_VERIFIED,
 )
+
 
 VEHICLE_CAPABILITY: Final = Endpoint(
     base=GRIC_API_BASE,

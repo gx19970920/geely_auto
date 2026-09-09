@@ -1,5 +1,6 @@
 {
-  "name": "Geely Auto",
+  "name": "Geely Auto (吉利汽车)",
   "content_in_root": false,
-  "render_readme": true
+  "render_readme": true,
+  "homeassistant": "2024.1.0"
 }

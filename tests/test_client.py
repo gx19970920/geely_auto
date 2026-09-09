@@ -93,11 +93,7 @@ def test_client_without_context_cannot_build_requests() -> None:
 
 
 def test_offline_pipeline_parses_fixture_response() -> None:
-    fixture = (
-        Path(__file__).parent
-        / "fixtures"
-        / "gric_favorite_vehicles.json"
-    )
+    fixture = Path(__file__).parent / "fixtures" / "gric_favorite_vehicles.json"
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     session = OfflineSession(payload)
     api = build_api(session)

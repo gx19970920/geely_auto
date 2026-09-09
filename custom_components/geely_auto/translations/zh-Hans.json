@@ -1,15 +1,101 @@
 {
   "title": "吉利汽车",
   "config": {
+    "step": {
+      "user": {
+        "title": "吉利汽车接入配置",
+        "description": "选择你的登录与接入方式。推荐使用手机验证码直接登录，插件将自动抓取车辆访问凭据。",
+        "menu_options": {
+          "sms": "手机验证码登录 (推荐)",
+          "token": "访问凭据登录 (手动输入 Token)",
+          "demo": "演示模式 (无需真实账号)"
+        }
+      },
+      "sms_phone": {
+        "title": "手机验证码登录 - 输入手机号",
+        "description": "请输入在吉利汽车 App 注册绑定的手机号码。",
+        "data": {
+          "phone": "手机号码"
+        }
+      },
+      "sms_captcha": {
+        "title": "极验安全滑块验证",
+        "description": "请在弹出的验证页面中完成极验安全滑块拖动拼图验证。"
+      },
+      "sms_code": {
+        "title": "输入短信验证码",
+        "description": "请输入手机收到的 6 位短信验证码以完成登录绑定。若验证码已失效或未收到，请勾选“重新获取短信验证码”后点击提交。",
+        "data": {
+          "sms_code": "短信验证码 (6位数字)",
+          "resend_code": "重新获取短信验证码 (重新进行滑块验证)"
+        }
+      },
+      "token": {
+        "title": "手动凭据登录",
+        "description": "输入通过抓包获取到的吉利汽车访问凭据 (Access Token)。",
+        "data": {
+          "access_token": "访问凭据 (Access Token)",
+          "refresh_token": "刷新凭据 (Refresh Token，可选)",
+          "device_id": "设备标识 (Device ID，留空自动生成)",
+          "app_version": "App 版本号"
+        }
+      }
+    },
+    "error": {
+      "token_or_demo_required": "请填写访问凭据 (Access Token) 或勾选启用演示模式。",
+      "invalid_sms_code": "短信验证码校验失败，请核对后重试。",
+      "sms_code_wrong": "短信验证码输入错误，请核对手机短信中的 6 位数字后重新输入。",
+      "sms_code_expired": "短信验证码已失效，请重新获取验证码。",
+      "sms_code_format": "验证码格式不正确，请输入 6 位数字验证码。",
+      "captcha_failed": "极验安全滑块验证失败，请重新尝试。",
+      "sms_send_failed": "短信验证码发送失败，请稍后重试或检查手机号。",
+      "cannot_connect": "连接吉利汽车云端服务器失败，请检查网络。",
+      "invalid_auth": "身份认证凭据无效，请重新登录。",
+      "unknown": "发生未知异常，请查看日志。"
+    },
     "abort": {
-      "protocol_samples_required": "当前尚不能配置。在连接车辆云服务前，必须先获得已验证且完全脱敏的协议样本。"
+      "already_configured": "该设备或账号已完成配置。"
     }
   },
   "entity": {
     "sensor": {
-      "fuel_level_pct": { "name": "燃油液位" },
-      "fuel_range_km": { "name": "续航里程" },
-      "usage_mode": { "name": "使用模式" }
+      "fuel_level_pct": { "name": "燃油 - 剩余油量" },
+      "fuel_level_l": { "name": "燃油 - 剩余燃油升数" },
+      "fuel_range_km": { "name": "燃油 - 续航里程" },
+      "avg_fuel_consumption": { "name": "燃油 - 平均油耗" },
+      "odometer_km": { "name": "车况 - 总里程" },
+      "battery_voltage": { "name": "车况 - 12V蓄电池电压" },
+      "coolant_temperature_c": { "name": "车况 - 发动机水温" },
+      "interior_temperature_c": { "name": "车况 - 车内实时温度" },
+      "usage_mode": { "name": "车况 - 使用模式" },
+      "updated_at": { "name": "车况 - 数据更新时间" },
+      "days_to_service": { "name": "维保 - 保养倒计时" },
+      "distance_to_service_km": { "name": "维保 - 保养剩余里程" },
+      "tyre_pressure_front_left": { "name": "轮胎 - 左前胎压" },
+      "tyre_temp_front_left": { "name": "轮胎 - 左前胎温" },
+      "tyre_pressure_front_right": { "name": "轮胎 - 右前胎压" },
+      "tyre_temp_front_right": { "name": "轮胎 - 右前胎温" },
+      "tyre_pressure_rear_left": { "name": "轮胎 - 左后胎压" },
+      "tyre_temp_rear_left": { "name": "轮胎 - 左后胎温" },
+      "tyre_pressure_rear_right": { "name": "轮胎 - 右后胎压" },
+      "tyre_temp_rear_right": { "name": "轮胎 - 右后胎温" },
+      "geely_points": { "name": "吉分" }
+    },
+    "binary_sensor": {
+      "locked": { "name": "车门 - 中控锁" },
+      "door_driver": { "name": "车门 - 主驾门" },
+      "door_passenger": { "name": "车门 - 副驾门" },
+      "door_driver_rear": { "name": "车门 - 左后门" },
+      "door_passenger_rear": { "name": "车门 - 右后门" },
+      "trunk_open": { "name": "车门 - 后备箱" },
+      "hood_open": { "name": "车门 - 前机盖" },
+      "window_open": { "name": "车窗 - 车窗状态" },
+      "handbrake": { "name": "车况 - 电子手刹" },
+      "climate_active": { "name": "车况 - 空调运行" },
+      "charging": { "name": "动力 - 充电状态" }
+    },
+    "button": {
+      "daily_checkin": { "name": "每日签到" }
     }
   },
   "diagnostics": {

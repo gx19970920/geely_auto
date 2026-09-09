@@ -1,49 +1,132 @@
-# Geely Auto for Home Assistant
+<div align="center">
 
-`geely_auto` 是面向"吉利汽车"App 车辆云服务的独立 Home Assistant 自定义集成（HACS 形态，与 geely-galaxy 同类）。
+<img src="logo.png" alt="Geely Auto Logo" width="140" height="140" />
 
-> [!IMPORTANT]
-> 集成已完成协议实证层（基于 2026-09-03 对本人账号的脱敏抓包）与 HA 实体层脚手架。
-> 剩余三项门禁（车辆状态实时样本、token 刷新流程、X-SIGNATURE v2.1 签名算法）
-> 解除前，Config Flow 不会创建配置条目，也不会发出任何真实网络请求。
+# 吉利汽车 (Geely Auto) for Home Assistant
 
-## 当前能力
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1.0+-blue.svg?style=for-the-badge&logo=home-assistant)](https://www.home-assistant.io/)
+[![Version](https://img.shields.io/badge/version-v0.3.0-brightgreen.svg?style=for-the-badge)](https://github.com/gx19970920/geely_auto/releases)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=for-the-badge)](LICENSE)
 
-### 协议层（证据分级）
-- **已验证**：车辆列表 `favorite-vehicles`（JWT + X-SIGNATURE v2.1 全套请求头）、
-  用户/首页/消息中心 9 个端点、令牌体系（JWT RS256 对）。
-- **静态候选**：`/ms-vehicle-status/api/v2.0/vehicle/status/latest` 等（APK 字符串，待实时验证）。
-- 车辆状态响应 Schema（213 字段，来自 App 本地缓存脱敏提取）。
-- 端点表带证据标签；写操作路径一律不入表。
+*专为“吉利汽车”App 打造的 Home Assistant 车辆智能集成，支持全系吉利燃油/混动/插混车型状态监控、吉分资产、每日自动签到与全自动令牌续期。*
 
-### 客户端
-- 请求头装配器（已验证头集）+ `RequestSigner` 接口；默认签名器保持门禁。
-- 传输映射：401/403 → 认证错误、429 → 限流、断网/超时 → 连接错误（带退避重试）。
-- 解析器：多车、`bizVehicleJson` 合并、字段缺失一律 `None`（不臆测枚举语义）。
-- 真实 socket 端到端测试：除签名器外全链路真实。
+</div>
 
-### Home Assistant 接入
-- `DataUpdateCoordinator` 周期轮询（300s），门禁关闭 → 实体显示"协议门禁"。
-- 每车设备（vin_hash 不可逆标识）+ 燃油液位/续航/使用模式传感器。
-- 未知值显示 `unknown`，绝不伪造 0 或关闭。
-- 诊断输出强制脱敏；只读纪律有测试守卫（控制类平台禁止存在）。
-- 中英双语实体翻译。
+---
 
-## 安全边界
+## 🌟 核心特性 (Features)
 
-- 不含 AppKey、Secret、签名算法实现或任何账号数据。
-- 抓包原始数据仅存 `captures/raw`（gitignored），产物全部脱敏并有扫描守卫。
-- 控制类平台（lock/switch/climate/button 等）被测试禁止存在。
+- 🚗 **全面车辆遥测 (Vehicle Telemetry)**
+  - 剩余燃油百分比及油量（L）
+  - 续航里程（km）与累计总里程（km）
+  - 车辆引擎运行状态、启停状态
+  - 中控门锁、四门状态、后备箱锁及开闭状态
+  - 四门车窗开闭状态（二值传感器）
+  - 小蓄电池状态与供电电压
+  - 最近上报时间戳与网络信号
+- 🏷️ **车辆自定义名称 (Custom Vehicle Nickname)**
+  - 自动从吉利 App 中同步您为爱车设置的专属昵称（如“大白”、“我的爱车”），并优雅替换系统预设的默认车型名（如“星越L (燃油版)”）。
+- 🪙 **“吉分”资产与明细 (Geely Points Sensor)**
+  - 实时同步吉利 App 中的可用“吉分”积分余额。
+  - 支持传感器属性查看积分流水、即将过期积分与账户统计。
+- 📅 **一键每日签到 (Daily Check-in Button)**
+  - 实体面板集成“每日签到”按键（Button 实体）。
+  - 支持与 Home Assistant 自动化工作流联动（如设定每日早上 8 点自动执行签到，领取吉分）。
+- 🔄 **全自动 Token 续签 Webhook (Seamless Auto-Renewal)**
+  - 专为手机/自动化抓包打造的 Webhook 接收端点。
+  - 当外部守护进程（如 Tasker、抓包脚本或自动化容器）捕获到新 Token 时，单次 HTTP POST 即可实时无感热更新集成凭证，永不过期。
+- 🛡️ **图形化极验滑块与短信登录向导 (Interactive Config Flow)**
+  - 支持在 Home Assistant Web 界面内直接完成极验（GeeTest）图形滑块验证并收取短信验证码一键登录。
 
-## 开发检查
+---
 
-```bash
-python -m pytest
-python -m ruff check .
-python -m mypy custom_components scripts
-python scripts/scan_secrets.py .
-```
+## 🚘 支持车型 (Supported Models)
 
-## 风险声明
+所有通过**吉利汽车 App** 进行车机绑定的车型均原生支持，包括但不限于：
 
-本项目不是吉利官方集成。云 API 可能随时改变。任何未来的车辆控制功能都必须单独授权、限流并通过车辆状态确认结果。
+- **星越系列**：星越L（燃油版 / Hi·F / Hi·P / 智擎）、星越S
+- **博越系列**：博越L、博越COOL、新博越
+- **缤字系列**：缤越、缤瑞COOL
+- **帝豪系列**：第4代帝豪、帝豪L Hi·P
+- **其他车型**：豪越L、嘉际L、ICON等吉利品牌全系智能网联车型
+
+---
+
+## 📦 安装指南 (Installation)
+
+### 方式一：通过 HACS 安装（推荐）
+
+1. 打开 Home Assistant 中的 **HACS**。
+2. 点击右上角菜单，选择 **“自定义存储库 (Custom repositories)”**。
+3. 在存储库地址输入：`https://github.com/gx19970920/geely_auto`，类别选择 **“集成 (Integration)”**，点击添加。
+4. 在 HACS 列表中找到 **Geely Auto (吉利汽车)**，点击 **“下载”**。
+5. **重启 Home Assistant**。
+
+### 方式二：手动安装
+
+1. 从 [Releases](https://github.com/gx19970920/geely_auto/releases) 页面下载最新的 `geely_auto.zip`。
+2. 解压并将 `geely_auto` 文件夹上传至 Home Assistant 的 `custom_components` 目录下：
+   ```text
+   /config/custom_components/geely_auto/
+   ```
+3. **重启 Home Assistant**。
+
+---
+
+## ⚙️ 配置与使用 (Configuration)
+
+### 1. 添加集成
+
+1. 前往 **设置** -> **设备与服务** -> **添加集成**。
+2. 搜索 **Geely Auto** 或 **吉利汽车**。
+3. 选择登录方式：
+   - **短信验证码登录（推荐）**：输入手机号，集成将在前端弹窗引导完成滑块拼图验证并向手机发送短信验证码，输入验证码后即可自动绑定全部名下车辆。
+   - **Token 凭据导入**：如果您已从手机端或抓包中获取了 `access_token` 与 `device_id`，可以直接粘贴填入。
+   - **演示模式 (Demo Mode)**：供开发者离线调试与效果体验。
+
+### 2. 配置选项 (Options)
+
+集成支持动态选项设置：
+- **自定义代理端点 (Checkin Proxy URL)**：配置签到或远控转发代理服务地址，缺省为 `http://127.0.0.1:8899`。
+- **自定义车辆昵称覆盖**：可随时手动修改车辆在 HA 面板中展示的友好名称。
+
+---
+
+## 📊 实体与传感器一览 (Entities)
+
+| 平台 | 实体名称 | 标识符 / Unique ID | 说明 |
+| :--- | :--- | :--- | :--- |
+| `sensor` | 燃油余量 | `sensor.<car>_fuel_level` | 剩余油量（L） |
+| `sensor` | 剩余燃油百分比 | `sensor.<car>_fuel_level_pct` | 燃油百分比（%） |
+| `sensor` | 续航里程 | `sensor.<car>_distance_to_empty` | 预计可用续航（km） |
+| `sensor` | 累计里程 | `sensor.<car>_odometer` | 车辆总行驶里程（km） |
+| `sensor` | 吉分 | `sensor.geely_points` | 吉利 App 可用吉分积分余额 |
+| `sensor` | 最近上报时间 | `sensor.<car>_last_updated` | 车辆云端最新同步时间 |
+| `binary_sensor` | 引擎状态 | `binary_sensor.<car>_engine_status` | 发动机运转 / 熄火 |
+| `binary_sensor` | 中控门锁 | `binary_sensor.<car>_central_locking` | 全部车门落锁状态 |
+| `binary_sensor` | 车窗状态 | `binary_sensor.<car>_<door>_window` | 对应车窗打开 / 关闭 |
+| `binary_sensor` | 后备箱 | `binary_sensor.<car>_trunk` | 尾门打开 / 关闭 |
+| `button` | 每日签到 | `button.<car>_daily_checkin` | 点击一键执行 App 每日签到 |
+
+---
+
+## 🔒 安全与隐私保障 (Privacy & Safety)
+
+1. **严格脱敏**：本项目开源代码经过多轮深度扫描与脱敏审查，**不包含**任何作者或第三方的真实手机号、车架号（VIN）、用户账号 ID 或真实网关私钥。
+2. **只读保护与安全隔离**：本项目严格遵守 Home Assistant 安全原则，遥测数据全部为只读轮询；关键控制动作（如签到）通过独立代理或严格校验保护。
+3. **数据直连**：所有通信均在您的 Home Assistant 宿主机与吉利官方云端 API 之间直接进行，绝不经过任何第三方中转服务器。
+
+---
+
+## ⚠️ 免责声明 (Disclaimer)
+
+- 本项目为个人开源爱好开发，**非吉利汽车官方发布或背书产品**。
+- “吉利”、“Geely”等商标及相关知识产权均归浙江吉利控股集团有限公司所有。
+- 使用本集成产生的网络请求需遵循吉利汽车服务协议，开发者不对因使用本集成导致的任何账号异常、风控或车辆问题承担责任。
+
+---
+
+## 📄 开源许可证 (License)
+
+本项目采用 [Apache-2.0 License](LICENSE) 许可证开源。欢迎提交 Issue 与 Pull Request！

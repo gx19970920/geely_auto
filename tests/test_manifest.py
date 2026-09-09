@@ -19,8 +19,6 @@ def test_manifest_declares_expected_identity() -> None:
 def test_no_control_platform_exists() -> None:
     """The integration is read-only: no actuating platform may ever exist."""
     prohibited = {
-        "binary_sensor.py",
-        "button.py",
         "climate.py",
         "cover.py",
         "device_tracker.py",

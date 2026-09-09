@@ -1,15 +1,101 @@
 {
   "title": "Geely Auto",
   "config": {
+    "step": {
+      "user": {
+        "title": "Geely Auto Integration",
+        "description": "Choose your preferred login method to integrate your Geely vehicle with Home Assistant.",
+        "menu_options": {
+          "sms": "SMS Code Login (Recommended)",
+          "token": "Access Token Login (Manual)",
+          "demo": "Demo / Mock Mode (No account required)"
+        }
+      },
+      "sms_phone": {
+        "title": "SMS Verification - Phone Number",
+        "description": "Enter your mobile phone number registered with the Geely Auto App.",
+        "data": {
+          "phone": "Mobile Phone Number"
+        }
+      },
+      "sms_captcha": {
+        "title": "GeeTest Security Verification",
+        "description": "Complete the slider captcha on the verification page."
+      },
+      "sms_code": {
+        "title": "Enter SMS Code",
+        "description": "Enter the 6-digit SMS verification code sent to your phone. If expired or not received, check 'Resend SMS code' and submit.",
+        "data": {
+          "sms_code": "SMS Verification Code (6 digits)",
+          "resend_code": "Resend SMS code (trigger slider captcha again)"
+        }
+      },
+      "token": {
+        "title": "Token / Manual Credentials",
+        "description": "Enter your captured Access Token and credentials.",
+        "data": {
+          "access_token": "Access Token",
+          "refresh_token": "Refresh Token (optional)",
+          "device_id": "Device ID (optional)",
+          "app_version": "App Version"
+        }
+      }
+    },
+    "error": {
+      "token_or_demo_required": "Please provide an Access Token or enable Demo Mode.",
+      "invalid_sms_code": "Invalid SMS verification code.",
+      "sms_code_wrong": "The SMS verification code is incorrect. Please check the 6 digits sent to your phone and try again.",
+      "sms_code_expired": "The SMS verification code has expired. Please request a new code.",
+      "sms_code_format": "Please enter a valid 6-digit SMS verification code.",
+      "captcha_failed": "GeeTest security captcha verification failed.",
+      "sms_send_failed": "Failed to send SMS code. Please try again later.",
+      "cannot_connect": "Failed to connect to Geely servers.",
+      "invalid_auth": "Invalid authentication credentials.",
+      "unknown": "An unexpected error occurred."
+    },
     "abort": {
-      "protocol_samples_required": "Setup is not available yet. Verified and sanitized protocol samples are required before this integration can connect to the vehicle cloud."
+      "already_configured": "This device or account is already configured."
     }
   },
   "entity": {
     "sensor": {
-      "fuel_level_pct": { "name": "Fuel level" },
-      "fuel_range_km": { "name": "Fuel range" },
-      "usage_mode": { "name": "Usage mode" }
+      "fuel_level_pct": { "name": "Fuel - Level percentage" },
+      "fuel_level_l": { "name": "Fuel - Volume" },
+      "fuel_range_km": { "name": "Fuel - Range" },
+      "avg_fuel_consumption": { "name": "Fuel - Average consumption" },
+      "odometer_km": { "name": "Vehicle - Odometer" },
+      "battery_voltage": { "name": "Vehicle - 12V battery voltage" },
+      "coolant_temperature_c": { "name": "Vehicle - Coolant temperature" },
+      "interior_temperature_c": { "name": "Vehicle - Interior temperature" },
+      "usage_mode": { "name": "Vehicle - Usage mode" },
+      "updated_at": { "name": "Vehicle - Last updated" },
+      "days_to_service": { "name": "Service - Days to service" },
+      "distance_to_service_km": { "name": "Service - Distance to service" },
+      "tyre_pressure_front_left": { "name": "Tyre - Front left pressure" },
+      "tyre_temp_front_left": { "name": "Tyre - Front left temperature" },
+      "tyre_pressure_front_right": { "name": "Tyre - Front right pressure" },
+      "tyre_temp_front_right": { "name": "Tyre - Front right temperature" },
+      "tyre_pressure_rear_left": { "name": "Tyre - Rear left pressure" },
+      "tyre_temp_rear_left": { "name": "Tyre - Rear left temperature" },
+      "tyre_pressure_rear_right": { "name": "Tyre - Rear right pressure" },
+      "tyre_temp_rear_right": { "name": "Tyre - Rear right temperature" },
+      "geely_points": { "name": "Geely Points" }
+    },
+    "binary_sensor": {
+      "locked": { "name": "Door - Central lock" },
+      "door_driver": { "name": "Door - Driver door" },
+      "door_passenger": { "name": "Door - Passenger door" },
+      "door_driver_rear": { "name": "Door - Rear left door" },
+      "door_passenger_rear": { "name": "Door - Rear right door" },
+      "trunk_open": { "name": "Door - Trunk" },
+      "hood_open": { "name": "Door - Engine hood" },
+      "window_open": { "name": "Window - Window status" },
+      "handbrake": { "name": "Vehicle - Handbrake" },
+      "climate_active": { "name": "Vehicle - Climate active" },
+      "charging": { "name": "Power - Charging" }
+    },
+    "button": {
+      "daily_checkin": { "name": "Daily Check-in" }
     }
   },
   "diagnostics": {
