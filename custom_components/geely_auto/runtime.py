@@ -48,6 +48,8 @@ class GateSnapshot(VehicleSnapshot):
 def _create_demo_snapshot(
     custom_name: str | None = None,
     geely_points: int | None = None,
+    sign_in_status: str | None = None,
+    last_checkin_date: str | None = None,
 ) -> VehicleSnapshot:
     """Create a realistic demo snapshot based on verified Xingyue L capture."""
     vin = "VIN00000000000001"
@@ -128,6 +130,8 @@ def _create_demo_snapshot(
         longitude=125.2647439,
         geely_points=geely_points if geely_points is not None else 4,
         geely_power=43,
+        sign_in_status=sign_in_status or "已签到",
+        last_checkin_date=last_checkin_date or datetime.now(tz=UTC).strftime("%Y-%m-%d"),
     )
     return VehicleSnapshot(summaries=(summary,), states={vin_hash(vin): state})
 
@@ -144,6 +148,8 @@ class GeelyAutoRuntime:
         demo_mode: bool = False,
         custom_vehicle_name: str | None = None,
         geely_points: int | None = None,
+        sign_in_status: str | None = None,
+        last_checkin_date: str | None = None,
     ) -> None:
         """Store the collaborators; tokens may be absent while gated."""
         self._api = api
@@ -152,6 +158,8 @@ class GeelyAutoRuntime:
         self._demo_mode = demo_mode
         self._custom_vehicle_name = custom_vehicle_name
         self._geely_points = geely_points
+        self._sign_in_status = sign_in_status or "未签到"
+        self._last_checkin_date = last_checkin_date
 
     @property
     def access_token(self) -> str | None:
@@ -184,6 +192,29 @@ class GeelyAutoRuntime:
         self._geely_points = value
 
     @property
+    def sign_in_status(self) -> str:
+        """Return the effective sign-in status for today."""
+        today_str = datetime.now(tz=UTC).strftime("%Y-%m-%d")
+        if self._last_checkin_date != today_str:
+            return "未签到"
+        return self._sign_in_status or "未签到"
+
+    @sign_in_status.setter
+    def sign_in_status(self, value: str | None) -> None:
+        """Update the sign-in status."""
+        self._sign_in_status = value or "未签到"
+
+    @property
+    def last_checkin_date(self) -> str | None:
+        """Return the date of the last check-in."""
+        return self._last_checkin_date
+
+    @last_checkin_date.setter
+    def last_checkin_date(self, value: str | None) -> None:
+        """Update the last check-in date."""
+        self._last_checkin_date = value
+
+    @property
     def gate_closed(self) -> bool:
         """True while no verified signer/context exists (and not in demo mode)."""
         if self._demo_mode:
@@ -196,6 +227,8 @@ class GeelyAutoRuntime:
             return _create_demo_snapshot(
                 custom_name=self._custom_vehicle_name,
                 geely_points=self._geely_points,
+                sign_in_status=self.sign_in_status,
+                last_checkin_date=self.last_checkin_date,
             )
         if self.gate_closed:
             return GateSnapshot(summaries=(), states={})
@@ -211,12 +244,16 @@ class GeelyAutoRuntime:
             return _create_demo_snapshot(
                 custom_name=self._custom_vehicle_name,
                 geely_points=self._geely_points,
+                sign_in_status=self.sign_in_status,
+                last_checkin_date=self.last_checkin_date,
             )
 
         if not summaries:
             return _create_demo_snapshot(
                 custom_name=self._custom_vehicle_name,
                 geely_points=self._geely_points,
+                sign_in_status=self.sign_in_status,
+                last_checkin_date=self.last_checkin_date,
             )
 
         if self._custom_vehicle_name:
@@ -255,10 +292,17 @@ class GeelyAutoRuntime:
             except Exception as err:  # noqa: BLE001
                 _LOGGER.debug("Could not fetch status for %s: %s", summary.vin, err)
 
-        if self._geely_points is not None:
-            states = {
-                vin_h: replace(st, geely_points=self._geely_points)
-                for vin_h, st in states.items()
-            }
+        current_status = self.sign_in_status
+        current_date = self.last_checkin_date
+        pts = self._geely_points
+        states = {
+            vin_h: replace(
+                st,
+                geely_points=pts if pts is not None else st.geely_points,
+                sign_in_status=current_status,
+                last_checkin_date=current_date,
+            )
+            for vin_h, st in states.items()
+        }
 
         return VehicleSnapshot(summaries=summaries, states=states)

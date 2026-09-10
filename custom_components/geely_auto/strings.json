@@ -44,7 +44,8 @@
       "tyre_temp_rear_left": { "name": "Tyre - Rear left temperature" },
       "tyre_pressure_rear_right": { "name": "Tyre - Rear right pressure" },
       "tyre_temp_rear_right": { "name": "Tyre - Rear right temperature" },
-      "geely_points": { "name": "Geely Points" }
+      "geely_points": { "name": "Geely Points" },
+      "sign_in_status": { "name": "Check-in Status" }
     },
     "binary_sensor": {
       "locked": { "name": "Door - Central lock" },
@@ -60,7 +61,8 @@
       "charging": { "name": "Power - Charging" }
     },
     "button": {
-      "daily_checkin": { "name": "Daily Check-in" }
+      "daily_checkin": { "name": "Daily Check-in" },
+      "read_checkin_status": { "name": "Read Check-in Status" }
     }
   },
   "diagnostics": {

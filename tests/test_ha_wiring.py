@@ -192,3 +192,50 @@ def test_geely_points_sensor() -> None:
     assert sensor._attr_native_unit_of_measurement == "分"
     assert sensor._attr_icon == "mdi:star-circle"
 
+
+def test_sign_in_status_sensor() -> None:
+    """Test sign_in_status sensor values, dynamic icon and extra attributes."""
+    import logging
+    from datetime import datetime
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    runtime = GeelyAutoRuntime(
+        GateApi(),
+        access_token=None,
+        context=None,
+        demo_mode=True,
+        sign_in_status="已签到",
+        last_checkin_date=today,
+    )
+    coordinator = coordinator_module.GeelyAutoDataUpdateCoordinator(
+        None, logging.getLogger("test"), runtime
+    )
+    coordinator.data = run(coordinator._async_update_data())
+    summary = coordinator.data.summaries[0]
+    spec = next(s for s in sensor_module.SENSOR_SPECS if s.key == "sign_in_status")
+    sensor = sensor_module.GeelyAutoValueSensor(coordinator, "entry-1", summary, spec)
+
+    assert sensor.native_value == "已签到"
+    assert sensor.icon == "mdi:calendar-check"
+    assert sensor.extra_state_attributes == {
+        "last_checkin_date": today,
+        "is_signed_in": True,
+    }
+
+
+def test_sign_in_status_day_rollover() -> None:
+    """Test that sign_in_status automatically defaults to 未签到 on a new day."""
+    runtime = GeelyAutoRuntime(
+        GateApi(),
+        access_token=None,
+        context=None,
+        demo_mode=True,
+        sign_in_status="已签到",
+        last_checkin_date="2020-01-01",  # in the past
+    )
+    assert runtime.sign_in_status == "未签到"
+
+    snapshot = run(runtime.fetch_snapshot())
+    state = list(snapshot.states.values())[0]
+    assert state.sign_in_status == "未签到"
+

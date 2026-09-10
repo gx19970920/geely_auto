@@ -44,7 +44,8 @@
       "tyre_temp_rear_left": { "name": "左后轮胎温" },
       "tyre_pressure_rear_right": { "name": "右后轮胎压" },
       "tyre_temp_rear_right": { "name": "右后轮胎温" },
-      "geely_points": { "name": "吉分" }
+      "geely_points": { "name": "吉分" },
+      "sign_in_status": { "name": "签到状态" }
     },
     "binary_sensor": {
       "locked": { "name": "中控门锁" },
@@ -60,7 +61,8 @@
       "charging": { "name": "充电状态" }
     },
     "button": {
-      "daily_checkin": { "name": "每日签到" }
+      "daily_checkin": { "name": "每日签到" },
+      "read_checkin_status": { "name": "读取签到状态" }
     }
   },
   "diagnostics": {

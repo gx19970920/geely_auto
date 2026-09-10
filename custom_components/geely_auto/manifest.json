@@ -9,5 +9,5 @@
   "iot_class": "cloud_polling",
   "loggers": ["custom_components.geely_auto"],
   "requirements": [],
-  "version": "0.3.0"
+  "version": "0.3.1"
 }

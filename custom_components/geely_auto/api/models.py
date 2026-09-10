@@ -98,4 +98,6 @@ class VehicleState:
     longitude: float | None = None
     geely_points: int | None = None
     geely_power: int | None = None
+    sign_in_status: str | None = None
+    last_checkin_date: str | None = None
     raw_capabilities: frozenset[str] = field(default_factory=frozenset)

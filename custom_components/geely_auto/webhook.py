@@ -7,7 +7,7 @@ fresh tokens directly into Home Assistant without requiring manual user interven
 from __future__ import annotations
 
 import base64
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 import logging
 import re
@@ -21,6 +21,8 @@ from .const import (
     CONF_CUSTOM_VEHICLE_NAME,
     CONF_DEVICE_ID,
     CONF_GEELY_POINTS,
+    CONF_LAST_CHECKIN_DATE,
+    CONF_SIGN_IN_STATUS,
     DOMAIN,
 )
 
@@ -137,6 +139,8 @@ async def async_handle_webhook(
 
     custom_name: str | None = None
     points: int | None = None
+    sign_in_status: str | None = None
+    checkin_date: str | None = None
     if isinstance(raw_payload, dict):
         custom_name = raw_payload.get("custom_name") or raw_payload.get("vehicle_name")
         pts = raw_payload.get("points")
@@ -148,13 +152,41 @@ async def async_handle_webhook(
             except (ValueError, TypeError):
                 pass
 
+        raw_status = (
+            raw_payload.get("sign_in_status")
+            or raw_payload.get("checkin_status")
+        )
+        if raw_status is not None:
+            if raw_status in ("已签到", "signed", "true", "True", True):
+                sign_in_status = "已签到"
+            elif raw_status in ("未签到", "unsigned", "false", "False", False):
+                sign_in_status = "未签到"
+            else:
+                sign_in_status = str(raw_status)
+        elif "is_signed_in" in raw_payload:
+            sign_in_status = "已签到" if raw_payload.get("is_signed_in") else "未签到"
+        elif "signed" in raw_payload:
+            sign_in_status = "已签到" if raw_payload.get("signed") else "未签到"
+
+        raw_date = raw_payload.get("checkin_date") or raw_payload.get("date")
+        if raw_date:
+            checkin_date = str(raw_date)
+        elif sign_in_status:
+            checkin_date = datetime.now(tz=UTC).strftime("%Y-%m-%d")
+
     new_options = dict(target_entry.options)
     if custom_name:
         new_options[CONF_CUSTOM_VEHICLE_NAME] = str(custom_name)
     if points is not None:
         new_options[CONF_GEELY_POINTS] = points
+    if sign_in_status:
+        new_options[CONF_SIGN_IN_STATUS] = sign_in_status
+        new_date = checkin_date or datetime.now(tz=UTC).strftime("%Y-%m-%d")
+        new_options[CONF_LAST_CHECKIN_DATE] = new_date
 
-    hass.config_entries.async_update_entry(target_entry, data=new_data, options=new_options)
+    hass.config_entries.async_update_entry(
+        target_entry, data=new_data, options=new_options
+    )
     _LOGGER.info(
         "Geely Auto access token updated via webhook for user %s (valid until %s)",
         user_id,
@@ -169,6 +201,11 @@ async def async_handle_webhook(
             coordinator.runtime.custom_vehicle_name = str(custom_name)
         if points is not None:
             coordinator.runtime.geely_points = points
+        if sign_in_status:
+            coordinator.runtime.sign_in_status = sign_in_status
+            coordinator.runtime.last_checkin_date = (
+                checkin_date or datetime.now(tz=UTC).strftime("%Y-%m-%d")
+            )
         await coordinator.async_refresh()
 
     # Create persistent notification in HA to notify user

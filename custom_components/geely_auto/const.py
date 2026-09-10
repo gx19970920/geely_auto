@@ -14,7 +14,13 @@ CONF_SIGNING_SECRET: Final = "signing_secret"  # noqa: S105
 CONF_LOGIN_METHOD: Final = "login_method"
 CONF_CUSTOM_VEHICLE_NAME: Final = "custom_vehicle_name"
 CONF_GEELY_POINTS: Final = "geely_points"
+CONF_SIGN_IN_STATUS: Final = "sign_in_status"
+CONF_LAST_CHECKIN_DATE: Final = "last_checkin_date"
 CONF_CHECKIN_PROXY_URL: Final = "checkin_proxy_url"
+
+CHECKIN_STATUS_SIGNED: Final = "已签到"
+CHECKIN_STATUS_UNSIGNED: Final = "未签到"
+DEFAULT_SIGN_IN_STATUS: Final = "未签到"
 
 LOGIN_METHOD_TOKEN: Final = "token"  # noqa: S105
 LOGIN_METHOD_DEMO: Final = "demo"

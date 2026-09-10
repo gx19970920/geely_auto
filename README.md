@@ -100,12 +100,14 @@
 | `sensor` | 续航里程 | `sensor.<car>_distance_to_empty` | 预计可用续航（km） |
 | `sensor` | 累计里程 | `sensor.<car>_odometer` | 车辆总行驶里程（km） |
 | `sensor` | 吉分 | `sensor.geely_points` | 吉利 App 可用吉分积分余额 |
+| `sensor` | 签到状态 | `sensor.<car>_sign_in_status` | 当天签到状态（已签到 / 未签到），隔日自动复位 |
 | `sensor` | 最近上报时间 | `sensor.<car>_last_updated` | 车辆云端最新同步时间 |
 | `binary_sensor` | 引擎状态 | `binary_sensor.<car>_engine_status` | 发动机运转 / 熄火 |
 | `binary_sensor` | 中控门锁 | `binary_sensor.<car>_central_locking` | 全部车门落锁状态 |
 | `binary_sensor` | 车窗状态 | `binary_sensor.<car>_<door>_window` | 对应车窗打开 / 关闭 |
 | `binary_sensor` | 后备箱 | `binary_sensor.<car>_trunk` | 尾门打开 / 关闭 |
 | `button` | 每日签到 | `button.<car>_daily_checkin` | 点击一键执行 App 每日签到 |
+| `button` | 读取签到状态 | `button.<car>_read_checkin_status` | 点击请求真机/代理读取当前签到状态与吉分 |
 
 ---
 

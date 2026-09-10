@@ -177,3 +177,42 @@ def test_webhook_handler_points_and_custom_name() -> None:
     assert mock_runtime.custom_vehicle_name == "星越L·东方曜"
     assert mock_runtime.geely_points == 4
 
+
+def test_webhook_handler_sign_in_status() -> None:
+    """Test webhook handles sign_in_status and checkin_date in payload."""
+    import sys
+    from custom_components.geely_auto.const import CONF_LAST_CHECKIN_DATE, CONF_SIGN_IN_STATUS
+    config_entries_module = sys.modules["homeassistant.config_entries"]
+    core_module = sys.modules["homeassistant.core"]
+    hass = core_module.HomeAssistant()
+
+    entry = config_entries_module.ConfigEntry(
+        data={CONF_ACCESS_TOKEN: "old-token"},
+        entry_id="entry-geely-003",
+    )
+    hass.config_entries._entries.append(entry)
+
+    mock_runtime = MagicMock()
+    mock_runtime.access_token = "old-token"
+    mock_runtime.sign_in_status = "未签到"
+    mock_runtime.last_checkin_date = None
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.runtime = mock_runtime
+    mock_coordinator.async_refresh = AsyncMock()
+    hass.data[DOMAIN] = {entry.entry_id: mock_coordinator}
+
+    req = MockRequest({
+        "token": SAMPLE_JWT,
+        "sign_in_status": "已签到",
+        "checkin_date": "2026-09-10",
+        "points": 10,
+    })
+    resp = run(async_handle_webhook(hass, "geely_auto_update_token", req))
+
+    assert resp.status == 200
+    assert entry.options[CONF_SIGN_IN_STATUS] == "已签到"
+    assert entry.options[CONF_LAST_CHECKIN_DATE] == "2026-09-10"
+    assert mock_runtime.sign_in_status == "已签到"
+    assert mock_runtime.last_checkin_date == "2026-09-10"
+

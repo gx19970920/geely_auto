@@ -146,13 +146,20 @@ SENSOR_SPECS: tuple[SensorSpec, ...] = (
         device_class=SensorDeviceClass.TEMPERATURE,
         getter=lambda s: s.tyre_temp_c.get("rear_right"),
     ),
-    # 用户权益
+    # 用户权益与签到
     SensorSpec(
         key="geely_points",
         name="吉分",
         unit="分",
         icon="mdi:star-circle",
         getter=lambda s: s.geely_points,
+    ),
+    SensorSpec(
+        key="sign_in_status",
+        name="签到状态",
+        unit=None,
+        icon="mdi:calendar-check",
+        getter=lambda s: s.sign_in_status or "未签到",
     ),
 )
 
@@ -203,6 +210,30 @@ class GeelyAutoValueSensor(GeelyAutoVehicleEntity, SensorEntity):
             return float(val)
         if isinstance(val, str):
             return val
+        return None
+
+    @property
+    def icon(self) -> str | None:
+        """Return dynamic icon for sensor."""
+        if self._spec.key == "sign_in_status":
+            val = self.native_value
+            if val == "已签到":
+                return "mdi:calendar-check"
+            return "mdi:calendar-remove-outline"
+        return self._spec.icon
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return sensor extra attributes."""
+        if self._spec.key == "sign_in_status":
+            snapshot = self._coordinator.data
+            if snapshot:
+                state = snapshot.states.get(self._summary.vin_hash)
+                if state:
+                    return {
+                        "last_checkin_date": state.last_checkin_date,
+                        "is_signed_in": (state.sign_in_status == "已签到"),
+                    }
         return None
 
     async def async_added_to_hass(self) -> None:

@@ -23,6 +23,8 @@ from .const import (
     CONF_DEMO_MODE,
     CONF_DEVICE_ID,
     CONF_GEELY_POINTS,
+    CONF_LAST_CHECKIN_DATE,
+    CONF_SIGN_IN_STATUS,
     DOMAIN,
 )
 from .coordinator import GeelyAutoDataUpdateCoordinator
@@ -49,6 +51,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     demo_mode = bool(entry.data.get(CONF_DEMO_MODE, False))
     custom_name = entry.options.get(CONF_CUSTOM_VEHICLE_NAME) or entry.data.get(CONF_CUSTOM_VEHICLE_NAME)
     geely_points = entry.options.get(CONF_GEELY_POINTS) or entry.data.get(CONF_GEELY_POINTS)
+    sign_in_status = entry.options.get(CONF_SIGN_IN_STATUS) or entry.data.get(CONF_SIGN_IN_STATUS)
+    last_checkin_date = entry.options.get(CONF_LAST_CHECKIN_DATE) or entry.data.get(CONF_LAST_CHECKIN_DATE)
     runtime = GeelyAutoRuntime(
         api,
         access_token=entry.data.get(CONF_ACCESS_TOKEN),  # nosec-secret-scan (passthrough)
@@ -56,6 +60,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         demo_mode=demo_mode,
         custom_vehicle_name=custom_name,
         geely_points=geely_points,
+        sign_in_status=sign_in_status,
+        last_checkin_date=last_checkin_date,
     )
     coordinator = GeelyAutoDataUpdateCoordinator(hass, _LOGGER, runtime)
     await coordinator.async_config_entry_first_refresh()

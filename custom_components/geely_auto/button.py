@@ -23,6 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # 自动化控制代理端点
 UNRAID_TRIGGER_URL = "http://checkin.geely.com/api/trigger_checkin"
+UNRAID_READ_STATUS_URL = "http://checkin.geely.com/api/read_checkin_status"
 
 
 class GeelyAutoCheckinButton(GeelyAutoVehicleEntity, ButtonEntity):
@@ -69,6 +70,56 @@ class GeelyAutoCheckinButton(GeelyAutoVehicleEntity, ButtonEntity):
             _LOGGER.error("触发吉利汽车每日签到失败: %s", err)
 
 
+class GeelyAutoReadCheckinStatusButton(GeelyAutoVehicleEntity, ButtonEntity):
+    """Button to read/refresh Geely Auto daily check-in status."""
+
+    _attr_icon = "mdi:calendar-sync"
+    _attr_translation_key = "read_checkin_status"
+
+    def __init__(
+        self,
+        coordinator: GeelyAutoDataUpdateCoordinator,
+        entry_id: str,
+        summary: VehicleSummary,
+    ) -> None:
+        super().__init__(entry_id, summary)
+        self._coordinator = coordinator
+        self._attr_unique_id = (
+            f"{entry_id}:{summary.vin_hash}:button:read_checkin_status"
+        )
+        self._attr_name = "读取签到状态"
+
+    async def async_press(self) -> None:
+        """Trigger check-in status reading by sending a request to the proxy service."""
+        entry = getattr(self._coordinator, "config_entry", None)
+        proxy_url = DEFAULT_CHECKIN_PROXY_URL
+        if entry is not None:
+            proxy_url = entry.options.get(
+                CONF_CHECKIN_PROXY_URL,
+                entry.data.get(CONF_CHECKIN_PROXY_URL, DEFAULT_CHECKIN_PROXY_URL),
+            )
+
+        _LOGGER.info(
+            "正在通过代理请求读取吉利汽车签到状态: %s via %s",
+            UNRAID_READ_STATUS_URL,
+            proxy_url,
+        )
+        session = async_get_clientsession(self.hass)
+        try:
+            async with session.post(
+                UNRAID_READ_STATUS_URL,
+                proxy=proxy_url,
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    _LOGGER.info("吉利汽车读取签到状态请求成功: %s", data)
+                else:
+                    _LOGGER.warning("吉利汽车读取签到状态返回 HTTP %d", resp.status)
+        except Exception as err:
+            _LOGGER.error("请求读取吉利汽车签到状态失败: %s", err)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -77,8 +128,11 @@ async def async_setup_entry(
     """Set up Geely Auto button entities."""
     coordinator: GeelyAutoDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     snapshot = coordinator.data
-    entities = [
-        GeelyAutoCheckinButton(coordinator, entry.entry_id, summary)
-        for summary in (snapshot.summaries if snapshot else ())
-    ]
+    summaries = snapshot.summaries if snapshot else ()
+    entities: list[ButtonEntity] = []
+    for summary in summaries:
+        entities.append(GeelyAutoCheckinButton(coordinator, entry.entry_id, summary))
+        entities.append(
+            GeelyAutoReadCheckinStatusButton(coordinator, entry.entry_id, summary)
+        )
     async_add_entities(entities)
